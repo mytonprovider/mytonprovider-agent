@@ -46,8 +46,8 @@ services:
       GF_USERS_DEFAULT_THEME: dark
     volumes:
       - grafana_data:/var/lib/grafana
-      - ../../observability/prometheus-grafana/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../../observability/prometheus-grafana/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ../observability/prometheus-grafana/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/prometheus-grafana/grafana/dashboards:/etc/grafana/dashboards:ro
     depends_on:
       - prometheus
       - loki

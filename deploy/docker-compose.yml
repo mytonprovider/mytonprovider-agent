@@ -1,8 +1,8 @@
 services:
   agent:
     build:
-      context: ../..
-      dockerfile: agent/Dockerfile
+      context: ..
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - .env
@@ -47,8 +47,8 @@ services:
       GF_USERS_DEFAULT_THEME: dark
     volumes:
       - grafana_data:/var/lib/grafana
-      - ../../observability/prometheus-grafana/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../../observability/prometheus-grafana/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ../observability/prometheus-grafana/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/prometheus-grafana/grafana/dashboards:/etc/grafana/dashboards:ro
     depends_on:
       - prometheus
       - loki

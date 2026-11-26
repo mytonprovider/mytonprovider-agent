@@ -2,24 +2,21 @@ FROM golang:1.26-bookworm AS builder
 
 WORKDIR /src
 
-COPY go.work ./go.work
-COPY agent/go.mod agent/go.sum ./agent/
-COPY coordinator/go.mod coordinator/go.sum ./coordinator/
+COPY go.mod go.sum ./
 COPY contracts/go.mod contracts/go.sum ./contracts/
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go work sync && \
-    cd agent && go mod download
+    go mod download
 
-COPY agent ./agent
-COPY coordinator ./coordinator
+COPY cmd ./cmd
+COPY internal ./internal
 COPY contracts ./contracts
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags="-s -w" -o /out/agent ./agent/cmd/agent
+    go build -trimpath -ldflags="-s -w" -o /out/agent ./cmd/agent
 
 FROM debian:bookworm-slim
 

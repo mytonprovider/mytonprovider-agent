@@ -16,8 +16,8 @@ Use this on VPS with limited disk: **build the agent image on your dev machine**
 |------|--------|--------|
 | 1 | Dev machine | Clone repo, `docker login` |
 | 2 | Dev machine | `AGENT_IMAGE=<user>/mytonprovider-agent:<tag> task agent:image:build:push` |
-| 3 | VPS | Repo clone (or copy `agent/deploy/` + secrets only), `task`, Docker |
-| 4 | VPS | `task agent:hub:init` → edit `agent/deploy/.env.hub` → `task agent:hub:up` or `task agent:hub:stack:up` |
+| 3 | VPS | Repo clone (or copy `deploy/` + secrets only), `task`, Docker |
+| 4 | VPS | `task agent:hub:init` → edit `deploy/.env.hub` → `task agent:hub:up` or `task agent:hub:stack:up` |
 
 **Why:** `task agent:deploy:up` runs `docker compose ... --build`, which pulls `golang:bookworm` and compiles on the VPS. Hub compose files (`docker-compose.hub.yml`, `docker-compose.hub.stack.yml`) use `image: ${AGENT_IMAGE}` with `pull_policy: always` — no agent build on VPS.
 
@@ -34,13 +34,13 @@ Separate steps: `task agent:image:build`, `task agent:image:push` (both require 
 
 ```bash
 task agent:hub:init
-nano agent/deploy/.env.hub
+nano deploy/.env.hub
 task agent:hub:up
 ```
 
 Place TLS files before `up` (see [secrets/README.md](secrets/README.md)):
-- `agent/deploy/secrets/server.crt`
-- `agent/deploy/secrets/server.key`
+- `deploy/secrets/server.crt`
+- `deploy/secrets/server.key`
 - run **`chmod 644`** on both after copying
 
 In `.env.hub` set:
@@ -80,11 +80,11 @@ Stop: `task agent:hub:stack:down` or `task agent:hub:down`.
 | `docker-compose.hub.yml` | `agent:hub:up` | `agent-1` | agent only |
 | `docker-compose.hub.stack.yml` | `agent:hub:stack:up` | `deploy-agent-1` | agent + monitoring |
 
-Repo path on VPS is often `~/mytonprovider-backend`. Run compose from `agent/deploy/`.
+Repo path on VPS is often `~/mytonprovider-agent`. Run compose from `deploy/`.
 
 ### Connecting to a new coordinator
 
-1. New `server.crt` / `server.key` (new CA) → `agent/deploy/secrets/`, `chmod 644`.
+1. New `server.crt` / `server.key` (new CA) → `deploy/secrets/`, `chmod 644`.
 2. `AGENT_AUTH_TOKEN` in `.env.hub` matches `coordinator/deploy/.env`.
 3. On coordinator: `AGENT_ENDPOINTS` lists this agent’s IP (same as cert SAN).
 4. Recreate agent container — see [secrets/README.md](secrets/README.md).
@@ -105,7 +105,7 @@ If coordinator gets `connection refused` on `:8443`, check agent logs for `serve
 
 Heavier on disk and CPU: compiles the agent image on the server via `docker compose ... --build`.
 
-Uses `agent/deploy/docker-compose.yml` and `agent/deploy/.env`.
+Uses `deploy/docker-compose.yml` and `deploy/.env`.
 
 ### 1) Prepare
 
@@ -113,12 +113,12 @@ From repository root:
 
 ```bash
 task agent:deploy:init
-nano agent/deploy/.env
+nano deploy/.env
 ```
 
 TLS files:
-- `agent/deploy/secrets/server.crt`
-- `agent/deploy/secrets/server.key`
+- `deploy/secrets/server.crt`
+- `deploy/secrets/server.key`
 
 ### 2) Start
 

@@ -16,8 +16,8 @@
 |-----|-----|----------|
 | 1 | Dev-машина | Клон репо, `docker login` |
 | 2 | Dev-машина | `AGENT_IMAGE=<user>/mytonprovider-agent:<tag> task agent:image:build:push` |
-| 3 | VPS | Клон репо (или только `agent/deploy/` + secrets), `task`, Docker |
-| 4 | VPS | `task agent:hub:init` → правка `agent/deploy/.env.hub` → `task agent:hub:up` или `task agent:hub:stack:up` |
+| 3 | VPS | Клон репо (или только `deploy/` + secrets), `task`, Docker |
+| 4 | VPS | `task agent:hub:init` → правка `deploy/.env.hub` → `task agent:hub:up` или `task agent:hub:stack:up` |
 
 **Зачем:** `task agent:deploy:up` делает `docker compose ... --build` — на VPS тянется `golang:bookworm` и идёт компиляция. Hub compose (`docker-compose.hub.yml`, `docker-compose.hub.stack.yml`) используют `image: ${AGENT_IMAGE}` и `pull_policy: always` — без сборки агента на VPS.
 
@@ -34,13 +34,13 @@ AGENT_IMAGE=<docker-user>/mytonprovider-agent:latest task agent:image:build:push
 
 ```bash
 task agent:hub:init
-nano agent/deploy/.env.hub
+nano deploy/.env.hub
 task agent:hub:up
 ```
 
 Перед `up` положите TLS (см. [secrets/README.ru.md](secrets/README.ru.md)):
-- `agent/deploy/secrets/server.crt`
-- `agent/deploy/secrets/server.key`
+- `deploy/secrets/server.crt`
+- `deploy/secrets/server.key`
 - **`chmod 644`** на оба файла после копирования
 
 В `.env.hub`:
@@ -80,14 +80,14 @@ UI:
 | `docker-compose.hub.yml` | `agent:hub:up` | `agent-1` | только агент |
 | `docker-compose.hub.stack.yml` | `agent:hub:stack:up` | `deploy-agent-1` | агент + Prometheus + Grafana + Loki |
 
-На VPS репозиторий часто лежит в `~/mytonprovider-backend` (не обязательно `/opt/...`). Команды compose запускайте из `agent/deploy/`.
+На VPS репозиторий часто лежит в `~/mytonprovider-agent` (не обязательно `/opt/...`). Команды compose запускайте из `deploy/`.
 
 ### Подключение к новому coordinator
 
-1. Новые `server.crt` / `server.key` (CA нового coordinator) → `agent/deploy/secrets/`, `chmod 644`.
+1. Новые `server.crt` / `server.key` (CA нового coordinator) → `deploy/secrets/`, `chmod 644`.
 2. `AGENT_AUTH_TOKEN` в `.env.hub` = токен из `coordinator/deploy/.env`.
 3. На coordinator: `AGENT_ENDPOINTS=<tailscale-ip-этого-агента>:8443,...`
-4. Перезапуск агента из `agent/deploy/` (см. [secrets/README.ru.md](secrets/README.ru.md)).
+4. Перезапуск агента из `deploy/` (см. [secrets/README.ru.md](secrets/README.ru.md)).
 
 Проверка: в логах `agent gRPC server started`, затем `RunChecks completed` (запросы с coordinator).
 
@@ -107,7 +107,7 @@ grpc_health_probe -addr=127.0.0.1:${AGENT_GRPC_PORT:-8443} -tls -tls-no-verify
 
 Тяжелее по диску и CPU: образ агента собирается на сервере через `docker compose ... --build`.
 
-Файлы: `agent/deploy/docker-compose.yml`, `agent/deploy/.env`.
+Файлы: `deploy/docker-compose.yml`, `deploy/.env`.
 
 ### 1) Подготовка
 
@@ -115,12 +115,12 @@ grpc_health_probe -addr=127.0.0.1:${AGENT_GRPC_PORT:-8443} -tls -tls-no-verify
 
 ```bash
 task agent:deploy:init
-nano agent/deploy/.env
+nano deploy/.env
 ```
 
 TLS:
-- `agent/deploy/secrets/server.crt`
-- `agent/deploy/secrets/server.key`
+- `deploy/secrets/server.crt`
+- `deploy/secrets/server.key`
 
 ### 2) Запуск
 

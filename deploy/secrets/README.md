@@ -22,7 +22,7 @@ and the container restart-loops without listening on `8443`.
 After copying certs:
 
 ```bash
-chmod 644 agent/deploy/secrets/server.crt agent/deploy/secrets/server.key
+chmod 644 deploy/secrets/server.crt deploy/secrets/server.key
 ```
 
 Verify:
@@ -42,6 +42,6 @@ The IP in `subjectAltName` must match what the coordinator uses in `AGENT_ENDPOI
 1. Copy new `server.crt` / `server.key` from the coordinator host (new CA).
 2. `chmod 644` both files.
 3. Set `AGENT_AUTH_TOKEN` in `.env.hub` to match the new coordinator.
-4. Recreate the agent container from `agent/deploy/`.
+4. Recreate the agent container from `deploy/`.
 
 Success: logs show `agent gRPC server started`, then `RunChecks completed` from the coordinator.

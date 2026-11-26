@@ -30,7 +30,7 @@ Datasources **Prometheus** and **Loki** are provisioned from `grafana/provisioni
 After each **RunChecks**, the agent can push compact JSON lines to Loki (one per job + one per **storage IP**).
 
 1. Start compose (`task up`).
-2. Run the agent with **`AGENT_LOKI_URL=http://127.0.0.1:3100`** (same host as Loki; no trailing slash). Root **`task agent:run:test`** sets this URL.
+2. Run the agent with **`AGENT_LOKI_URL=http://127.0.0.1:3100`** (same host as Loki; no trailing slash). Root **`task run:test`** sets this URL.
 3. In Grafana: **Dashboards → Agent → RunChecks jobs (Loki)** — job table and IP table (variable **job_id**, **All** = all jobs).
 
 JSON fields include `valid`, `invalid`, `total`, `duration_ms`, `finished_unix`, and **`n_<REASON_CODE>`** counters (numbers; missing codes are zero).

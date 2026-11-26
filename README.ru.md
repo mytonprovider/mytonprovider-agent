@@ -1,14 +1,72 @@
-# TLS для агента (без DNS)
+# mytonprovider-agent
 
 **[English version](README.md)**
+
+Агент проверок для [mytonprovider.org](https://mytonprovider.org): gRPC (`RunChecks`, `RunStorageRates`), ADNL к провайдерам, опционально Prometheus и push в Loki. Его вызывает coordinator из [mytonprovider-backend](https://github.com/mytonprovider/mytonprovider-backend) по gRPC с TLS.
+
+## Структура репозитория
+
+```
+├── cmd/agent/          # точка входа
+├── internal/           # проверки, gRPC-сервер, ADNL-транспорт, метрики
+├── contracts/          # proto и сгенерированный Go (отдельный Go-модуль)
+├── deploy/             # Docker Compose для VPS
+├── observability/      # локальный Prometheus + Grafana + Loki (dev)
+├── tests/              # gRPC- и Postman-тесты
+└── Taskfile.yml        # proto, тесты, деплой
+```
+
+## Разработка
+
+**Нужно:** Go 1.26+, [Task](https://taskfile.dev), `grpcurl`, `openssl`, `protoc` (для `task proto:gen`).
+
+```bash
+# Перегенерация protobuf (после правок contracts/proto)
+task proto:gen
+task proto:check
+
+# Локальный агент с тестовым TLS и токеном
+task run:test
+```
+
+В другом терминале — gRPC smoke (агент уже должен быть запущен):
+
+```bash
+task test:smoke
+```
+
+Живые проверки с реальными данными TON: [tests/grpc/README.md](tests/grpc/README.md) · [RU](tests/grpc/README.ru.md).
+
+## Docker-деплой (VPS)
+
+Документация: [EN](deploy/README.md) · [RU](deploy/README.ru.md). Образ публикует workflow `Publish` при каждом push в `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, тег — первые 7 символов коммита. Ручная сборка `task image:build:push` остаётся запасным путём.
+
+```bash
+# VPS
+task hub:init && nano deploy/.env.hub && task hub:stack:up
+```
+
+**Агент со сборкой на VPS** (только dev / отладка):
+
+```bash
+task deploy:init
+nano deploy/.env
+task deploy:up
+```
+
+## Локальная observability
+
+Prometheus + Grafana + Loki для разработки: [EN](observability/prometheus-grafana/README.md) · [RU](observability/prometheus-grafana/README.ru.md).
+
+## TLS для агента (без DNS)
 
 Сервис ожидает файлы TLS-сертификата и ключа при старте. Используйте свою CA (обычно на **coordinator**) и выпускайте server-сертификаты с **IP SAN**.
 
 **Важно:** IP в SAN = адрес в `AGENT_ENDPOINTS` coordinator’а. Для связи через **Tailscale** указывайте Tailscale IPv4 (`100.x.x.x`), не обязательно публичный IP VPS.
 
-После копирования на агент: `chmod 644` на `server.key` — см. [agent/deploy/secrets/README.ru.md](deploy/secrets/README.ru.md).
+После копирования на агент: `chmod 644` на `server.key` — см. [deploy/secrets/README.ru.md](deploy/secrets/README.ru.md).
 
-## 1) Генерация CA (один раз, на coordinator)
+### 1) Генерация CA (один раз, на coordinator)
 
 ```bash
 mkdir -p certs/ca
@@ -18,7 +76,7 @@ openssl req -x509 -new -nodes -key certs/ca/ca.key -sha256 -days 3650 -out certs
 
 `certs/ca/ca.key` храните в секрете. Не коммитьте в git.
 
-## 2) Server-сертификат для IP агента
+### 2) Server-сертификат для IP агента
 
 Создайте OpenSSL config для каждого агента. Замените `203.0.113.10` на IP из `AGENT_ENDPOINTS` (публичный IP или Tailscale):
 
@@ -80,7 +138,7 @@ openssl req -new -key certs/agent-eu/server.key -out certs/agent-eu/server.csr -
 openssl x509 -req -in certs/agent-eu/server.csr -CA certs/ca/ca.crt -CAkey certs/ca/ca.key -CAcreateserial -out certs/agent-eu/server.crt -days 365 -sha256 -extensions v3_req -extfile certs/agent-eu.cnf
 ```
 
-## 3) Env для контейнера агента
+### 3) Env для контейнера агента
 
 ```bash
 AGENT_LISTEN_ADDR=:8443
@@ -103,9 +161,9 @@ AGENT_ADNL_PORT=16167
 # AGENT_METRICS_LISTEN_ADDR=0.0.0.0:9090
 ```
 
-Скопируйте на агент в `agent/deploy/secrets/`, затем `chmod 644 server.crt server.key`. Файлы монтируются read-only в `/run/secrets/`.
+Скопируйте на агент в `deploy/secrets/`, затем `chmod 644 server.crt server.key`. Файлы монтируются read-only в `/run/secrets/`.
 
-## 4) gRPC health (`grpc.health.v1.Health`)
+### 4) gRPC health (`grpc.health.v1.Health`)
 
 Агент регистрирует стандартный **gRPC Health Checking** на том же TLS-порту, что `RunChecks` / `RunStorageRates`.
 
@@ -120,7 +178,11 @@ grpc_health_probe -addr=127.0.0.1:8443 -tls -tls-no-verify
 
 На gRPC-сервере включён **HTTP/2 keepalive** (пинги idle-клиентов ~раз в минуту), чтобы NAT/firewall реже рвал долгие соединения.
 
-## 5) Доверие со стороны coordinator
+### 5) Доверие со стороны coordinator
 
 gRPC-клиент coordinator должен доверять CA (`ca.crt`), которой подписаны server-сертификаты агентов.
 Приватный ключ CA на серверы не копируйте.
+
+## Лицензия
+
+Apache-2.0 — см. [LICENSE](LICENSE).

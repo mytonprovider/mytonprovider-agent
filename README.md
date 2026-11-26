@@ -1,14 +1,72 @@
-# Agent TLS Setup (No DNS)
+# mytonprovider-agent
 
 **[Русская версия](README.ru.md)**
+
+Check agent for [mytonprovider.org](https://mytonprovider.org): gRPC service (`RunChecks`, `RunStorageRates`), ADNL transport to providers, optional Prometheus metrics and Loki push. The coordinator from [mytonprovider-backend](https://github.com/mytonprovider/mytonprovider-backend) calls it over gRPC with TLS.
+
+## Repository layout
+
+```
+├── cmd/agent/          # entrypoint
+├── internal/           # checks, gRPC server, ADNL transport, metrics
+├── contracts/          # proto + generated Go (separate Go module)
+├── deploy/             # Docker Compose for VPS
+├── observability/      # local Prometheus + Grafana + Loki (dev)
+├── tests/              # gRPC and Postman tests
+└── Taskfile.yml        # proto, tests, deploy tasks
+```
+
+## Development
+
+**Prerequisites:** Go 1.26+, [Task](https://taskfile.dev), `grpcurl`, `openssl`, `protoc` (for `task proto:gen`).
+
+```bash
+# Regenerate protobuf (after editing contracts/proto)
+task proto:gen
+task proto:check
+
+# Run agent locally with test TLS + token
+task run:test
+```
+
+In another terminal — gRPC smoke tests (agent must already be running):
+
+```bash
+task test:smoke
+```
+
+Live checks against real TON data: [tests/grpc/README.md](tests/grpc/README.md) · [RU](tests/grpc/README.ru.md).
+
+## Docker deploy (VPS)
+
+Docs: [EN](deploy/README.md) · [RU](deploy/README.ru.md). The image is published by the `Publish` workflow on every push to `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, the tag is the first 7 characters of the commit. Manual `task image:build:push` stays as a fallback.
+
+```bash
+# VPS
+task hub:init && nano deploy/.env.hub && task hub:stack:up
+```
+
+**Agent build on VPS** (dev / debugging only):
+
+```bash
+task deploy:init
+nano deploy/.env
+task deploy:up
+```
+
+## Local observability
+
+Prometheus + Grafana + Loki for development: [EN](observability/prometheus-grafana/README.md) · [RU](observability/prometheus-grafana/README.ru.md).
+
+## TLS setup (no DNS)
 
 This service expects TLS cert and key files at startup. Use your own CA (usually on the **coordinator** host) and issue per-agent server certificates with matching **IP SAN** entries.
 
 **Important:** SAN IP must match what the coordinator uses in `AGENT_ENDPOINTS`. For **Tailscale**, use the Tailscale IPv4 (`100.x.x.x`), not necessarily the VPS public IP.
 
-After copying to an agent: `chmod 644` on `server.key` — see [agent/deploy/secrets/README.md](deploy/secrets/README.md).
+After copying to an agent: `chmod 644` on `server.key` — see [deploy/secrets/README.md](deploy/secrets/README.md).
 
-## 1) Generate CA (once, on coordinator)
+### 1) Generate CA (once, on coordinator)
 
 ```bash
 mkdir -p certs/ca
@@ -18,7 +76,7 @@ openssl req -x509 -new -nodes -key certs/ca/ca.key -sha256 -days 3650 -out certs
 
 Keep `certs/ca/ca.key` private. Never commit it to git.
 
-## 2) Issue server cert for agent IP
+### 2) Issue server cert for agent IP
 
 Create OpenSSL config for each agent. Replace `203.0.113.10` with the IP from `AGENT_ENDPOINTS` (public or Tailscale):
 
@@ -51,7 +109,7 @@ openssl req -new -key certs/agent-eu/server.key -out certs/agent-eu/server.csr -
 openssl x509 -req -in certs/agent-eu/server.csr -CA certs/ca/ca.crt -CAkey certs/ca/ca.key -CAcreateserial -out certs/agent-eu/server.crt -days 365 -sha256 -extensions v3_req -extfile certs/agent-eu.cnf
 ```
 
-## 3) Runtime env for agent container
+### 3) Runtime env for agent container
 
 ```bash
 AGENT_LISTEN_ADDR=:8443
@@ -74,9 +132,9 @@ AGENT_ADNL_PORT=16167
 # AGENT_METRICS_LISTEN_ADDR=0.0.0.0:9090
 ```
 
-Copy to `agent/deploy/secrets/` on the agent host, then `chmod 644 server.crt server.key`. Files are mounted read-only at `/run/secrets/`.
+Copy to `deploy/secrets/` on the agent host, then `chmod 644 server.crt server.key`. Files are mounted read-only at `/run/secrets/`.
 
-## 4) gRPC health (`grpc.health.v1.Health`)
+### 4) gRPC health (`grpc.health.v1.Health`)
 
 The agent registers the standard **gRPC Health Checking** service on the same TLS port as `RunChecks` / `RunStorageRates`.
 
@@ -91,7 +149,11 @@ grpc_health_probe -addr=127.0.0.1:8443 -tls -tls-no-verify
 
 The gRPC server also enables **HTTP/2 keepalive** (server pings idle clients about once per minute; clients may ping at most about every 10s when `PermitWithoutStream` applies) so long-lived connections are less likely to be dropped by NAT/firewalls.
 
-## 5) Coordinator trust
+### 5) Coordinator trust
 
 Coordinator gRPC client must trust the CA cert (`ca.crt`) that signed agent server certs.
 Do not copy CA private key to any server.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).

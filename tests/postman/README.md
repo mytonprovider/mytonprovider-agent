@@ -25,7 +25,7 @@ task postman:run
 ### Notes
 
 - This task uses Postman CLI (`postman`) and writes detailed CLI output plus a JSON report.
-- Export location: `agent/tests/postman/reports/postman-report.json`.
+- Export location: `tests/postman/reports/postman-report.json`.
 - Set `POSTMAN_CA_CERT` env var when you need to trust custom CA cert:
 
 ```bash

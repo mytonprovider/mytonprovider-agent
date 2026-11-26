@@ -2,7 +2,7 @@
 
 **[Русская версия](README.ru.md)**
 
-Place agent TLS files here before `task agent:hub:up`, `task agent:hub:stack:up`, or `task agent:deploy:up`.
+Place agent TLS files here before `task hub:up`, `task hub:stack:up`, or `task deploy:up`.
 
 ## Files
 

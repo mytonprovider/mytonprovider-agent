@@ -2,7 +2,7 @@
 
 **[English version](README.md)**
 
-Положите TLS-файлы агента сюда перед `task agent:hub:up` / `task agent:hub:stack:up` / `task agent:deploy:up`.
+Положите TLS-файлы агента сюда перед `task hub:up` / `task hub:stack:up` / `task deploy:up`.
 
 ## Файлы
 

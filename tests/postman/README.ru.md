@@ -25,7 +25,7 @@ task postman:run
 ### Заметки
 
 - Task использует Postman CLI (`postman`), пишет вывод и JSON-отчёт.
-- Отчёт: `agent/tests/postman/reports/postman-report.json` (gitignore).
+- Отчёт: `tests/postman/reports/postman-report.json` (gitignore).
 - Для своей CA: `POSTMAN_CA_CERT`:
 
 ```bash

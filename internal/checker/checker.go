@@ -23,7 +23,7 @@ import (
 	"github.com/xssnick/tonutils-go/tlb"
 	"github.com/xssnick/tonutils-go/tvm/cell"
 
-	providerchecksv1 "github.com/rudolfkova/mytonprovider-backend/contracts/gen/go/providerchecks/v1"
+	providerchecksv1 "github.com/mytonprovider/mytonprovider-agent/contracts/gen/go/providerchecks/v1"
 	"mytonprovider-agent/internal/metrics"
 	"mytonprovider-agent/internal/reason"
 	"mytonprovider-agent/internal/tonstorage"

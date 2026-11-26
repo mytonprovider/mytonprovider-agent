@@ -3,8 +3,8 @@ module mytonprovider-agent
 go 1.26.2
 
 require (
+	github.com/mytonprovider/mytonprovider-agent/contracts v0.0.0
 	github.com/prometheus/client_golang v1.24.1
-	github.com/rudolfkova/mytonprovider-backend/contracts v0.0.0
 	github.com/xssnick/tonutils-go v1.19.1
 	github.com/xssnick/tonutils-storage-provider v0.4.4
 	google.golang.org/grpc v1.83.0
@@ -29,4 +29,4 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-replace github.com/rudolfkova/mytonprovider-backend/contracts => ../contracts
+replace github.com/mytonprovider/mytonprovider-agent/contracts => ./contracts

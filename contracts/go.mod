@@ -1,4 +1,4 @@
-module github.com/rudolfkova/mytonprovider-backend/contracts
+module github.com/mytonprovider/mytonprovider-agent/contracts
 
 go 1.26.2
 

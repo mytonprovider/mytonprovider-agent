@@ -10,11 +10,11 @@
 
 ## Production / VPS (GHCR) — рекомендуется
 
-Для VPS с ограниченным диском: образ публикует workflow `Publish` при каждом push в `master` (`ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, тег — первые 7 символов коммита), на VPS только **pull** — без кэша `golang` и сборки исходников на сервере.
+Для VPS с ограниченным диском: образ публикует задание `publish` в `CI` после проверок при каждом push в `master` (`ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, тег — первые 7 символов коммита), на VPS только **pull** — без кэша `golang` и сборки исходников на сервере.
 
 | Шаг | Где | Действие |
 |-----|-----|----------|
-| 1 | GitHub | Merge в `master` → workflow `Publish` публикует образ |
+| 1 | GitHub | Merge в `master` → задание `publish` в `CI` публикует образ |
 | 2 | VPS | Клон репо (или только `deploy/` + secrets), `task`, Docker |
 | 3 | VPS | `task hub:init` → правка `deploy/.env.hub` → `task hub:up` или `task hub:stack:up` |
 

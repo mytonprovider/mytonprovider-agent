@@ -39,7 +39,7 @@ Live checks against real TON data: [tests/grpc/README.md](tests/grpc/README.md) 
 
 ## Docker deploy (VPS)
 
-Docs: [EN](deploy/README.md) · [RU](deploy/README.ru.md). The image is published by the `Publish` workflow on every push to `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, the tag is the first 7 characters of the commit. Manual `task image:build:push` stays as a fallback.
+Docs: [EN](deploy/README.md) · [RU](deploy/README.ru.md). The image is published by the `publish` job in `CI` after checks on every push to `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, the tag is the first 7 characters of the commit. Manual `task image:build:push` stays as a fallback.
 
 ```bash
 # VPS

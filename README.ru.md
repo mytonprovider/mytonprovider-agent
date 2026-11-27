@@ -39,7 +39,7 @@ task test:smoke
 
 ## Docker-деплой (VPS)
 
-Документация: [EN](deploy/README.md) · [RU](deploy/README.ru.md). Образ публикует workflow `Publish` при каждом push в `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, тег — первые 7 символов коммита. Ручная сборка `task image:build:push` остаётся запасным путём.
+Документация: [EN](deploy/README.md) · [RU](deploy/README.ru.md). Образ публикует задание `publish` в `CI` после проверок при каждом push в `master`: `ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, тег — первые 7 символов коммита. Ручная сборка `task image:build:push` остаётся запасным путём.
 
 ```bash
 # VPS

@@ -10,11 +10,11 @@ This stack can run:
 
 ## Production / VPS (GHCR) — recommended
 
-Use this on VPS with limited disk: the image is published by the `Publish` workflow on every push to `master` (`ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, the tag is the first 7 characters of the commit), on the VPS only **pull** the image — no `golang` build cache or source compile on the server.
+Use this on VPS with limited disk: the image is published by the `publish` job in `CI` after checks on every push to `master` (`ghcr.io/mytonprovider/mytonprovider-agent:<tag>`, the tag is the first 7 characters of the commit), on the VPS only **pull** the image — no `golang` build cache or source compile on the server.
 
 | Step | Where | Action |
 |------|--------|--------|
-| 1 | GitHub | Merge to `master` → `Publish` workflow pushes the image |
+| 1 | GitHub | Merge to `master` → `publish` job in `CI` pushes the image |
 | 2 | VPS | Repo clone (or copy `deploy/` + secrets only), `task`, Docker |
 | 3 | VPS | `task hub:init` → edit `deploy/.env.hub` → `task hub:up` or `task hub:stack:up` |
 
